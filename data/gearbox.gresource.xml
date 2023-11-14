@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gresources>
+  <gresource prefix="/com/aesteve/gearbox/">
+    <file preprocess="xml-stripblanks">arrow.svg</file>
+  </gresource>
+  <gresource prefix="/com/aesteve/gearbox/icons/16x16/actions">
+    <file preprocess="xml-stripblanks">go-home-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">back-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">up-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">down-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">left-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">right-symbolic.svg</file>
+  </gresource>
+</gresources>

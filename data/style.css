@@ -1,0 +1,8 @@
+window {
+    background: transparent;
+}
+
+#gear-scale levelbar .bar {
+    background: alpha(#4CAF50, 0.2);
+  }
+  
