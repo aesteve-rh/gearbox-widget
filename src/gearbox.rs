@@ -126,6 +126,10 @@ mod imp {
             self.fixed
                 .move_(&*self.label_drive, LABEL_XPOS, END_YPOS + 5.0);
         }
+
+        fn dispose(&self) {
+            self.fixed.unparent();
+        }
     }
 
     impl WidgetImpl for GearboxWidget {
