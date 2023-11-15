@@ -165,7 +165,7 @@ impl GearboxWidget {
     }
 
     #[template_callback]
-    async fn on_gear_change(&self, scale: &gtk::Scale) {
+    fn on_gear_change(&self, scale: &gtk::Scale) {
         if let Ok(gear) = VehicleGear::try_from(scale.value() as u32) {
             self.vhal().set_gear_selection(gear.to_vhal()).unwrap();
             if !self.vhal().recv_cmd().is_ok_and(|cmd| {
