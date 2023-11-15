@@ -4,7 +4,6 @@
 use gtk::{glib, prelude::*, subclass::prelude::*};
 use log::warn;
 use num_enum::TryFromPrimitive;
-use vhal_emulator as ve;
 
 const START_YPOS: f64 = 30.0;
 const END_YPOS: f64 = 200.0;
@@ -114,6 +113,10 @@ mod imp {
     impl ObjectImpl for GearboxWidget {
         fn constructed(&self) {
             self.parent_constructed();
+
+            let vhal = ve::Vhal::new(ve::adb_port_forwarding().unwrap()).unwrap();
+            self.vhal.set(vhal).unwrap();
+
             let adjustment = gtk::Adjustment::builder().lower(0.0).upper(3.0).build();
             self.scale.set_adjustment(&adjustment);
             self.fixed.move_(&*self.scale, SCALE_XPOS, START_YPOS);
@@ -125,6 +128,10 @@ mod imp {
                 .move_(&*self.label_neutral, LABEL_XPOS, START_YPOS + 115.0);
             self.fixed
                 .move_(&*self.label_drive, LABEL_XPOS, END_YPOS + 5.0);
+        }
+
+        fn dispose(&self) {
+            self.fixed.unparent();
         }
     }
 
@@ -147,24 +154,18 @@ glib::wrapper! {
 
 impl Default for GearboxWidget {
     fn default() -> Self {
-        glib::Object::new::<Self>().init_vhal()
+        glib::Object::new()
     }
 }
 
 #[gtk::template_callbacks]
 impl GearboxWidget {
-    pub fn init_vhal(self) -> Self {
-        let vhal = ve::Vhal::new(ve::adb_port_forwarding().unwrap()).unwrap();
-        self.imp().vhal.set(vhal).unwrap();
-        self
-    }
-
     fn vhal(&self) -> &ve::Vhal {
         self.imp().vhal.get().unwrap()
     }
 
     #[template_callback]
-    async fn on_gear_change(&self, scale: &gtk::Scale) {
+    fn on_gear_change(&self, scale: &gtk::Scale) {
         if let Ok(gear) = VehicleGear::try_from(scale.value() as u32) {
             self.vhal().set_gear_selection(gear.to_vhal()).unwrap();
             if !self.vhal().recv_cmd().is_ok_and(|cmd| {
