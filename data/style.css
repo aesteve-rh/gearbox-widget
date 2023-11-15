@@ -1,8 +1,22 @@
-window {
-    background: transparent;
+/*
+SPDX-FileCopyrightText: Red Hat, Inc.
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+scale slider {
+  background-color: white;
+  border-width: 4px;
+  border-color: black;
+  border-radius: 6px;
+  transform: scale(1.5, 0.75);
 }
 
-#gear-scale levelbar .bar {
-    background: alpha(#4CAF50, 0.2);
-  }
-  
+scale trough {
+  background-color: black;
+  border-radius: 6px;
+}
+
+label {
+  font-size: 140%;
+  font-weight: bold;
+}

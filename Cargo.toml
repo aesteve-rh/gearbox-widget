@@ -7,4 +7,3 @@ edition = "2021"
 
 [dependencies]
 gtk = { version = "0.7", package = "gtk4", features = ["v4_12"] }
-gvdb-macros = "0.1"

@@ -1,9 +1,13 @@
-//use gettextrs::gettext;
-use glib::Object;
-use gtk::{gdk, glib, graphene, gsk, pango, prelude::*, subclass::prelude::*};
+// SPDX-FileCopyrightText: Red Hat, Inc.
+// SPDX-License-Identifier: GPL-3.0-or-later
 
-const WIDTH: f32 = 360.0;
-const HEIGHT: f32 = 360.0;
+use glib::Object;
+use gtk::{glib, prelude::*, subclass::prelude::*};
+
+const START_YPOS: f64 = 30.0;
+const END_YPOS: f64 = 200.0;
+const SCALE_XPOS: f64 = 50.0;
+const LABEL_XPOS: f64 = 95.0;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub enum VehicleGear {
@@ -14,7 +18,7 @@ pub enum VehicleGear {
 }
 
 mod imp {
-    use std::cell::{Cell, OnceCell, RefCell};
+    use std::cell::OnceCell;
 
     use super::*;
 
@@ -30,6 +34,27 @@ mod imp {
                   <property name="round-digits">0</property>
                   <property name="show-fill-level">false</property>
                   <property name="has-origin">false</property>
+                  <property name="height-request">200</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel" id="label_park">
+                <property name="label">- P</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel" id="label_reverse">
+                <property name="label">- R</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel" id="label_neutral">
+                <property name="label">- N</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel" id="label_drive">
+                <property name="label">- D</property>
               </object>
             </child>
           </object>
@@ -42,6 +67,14 @@ mod imp {
         pub(super) fixed: TemplateChild<gtk::Fixed>,
         #[template_child]
         pub(super) scale: TemplateChild<gtk::Scale>,
+        #[template_child]
+        pub(super) label_park: TemplateChild<gtk::Label>,
+        #[template_child]
+        pub(super) label_reverse: TemplateChild<gtk::Label>,
+        #[template_child]
+        pub(super) label_neutral: TemplateChild<gtk::Label>,
+        #[template_child]
+        pub(super) label_drive: TemplateChild<gtk::Label>,
         pub(super) gear: OnceCell<VehicleGear>,
     }
 
@@ -65,30 +98,28 @@ mod imp {
     impl ObjectImpl for GearboxWidget {
         fn constructed(&self) {
             self.parent_constructed();
-            let adjustment = gtk::Adjustment::default();
-            adjustment.set_lower(0.0);
-            adjustment.set_upper(3.0);
-            adjustment.set_step_increment(1.0);
+            let adjustment = gtk::Adjustment::builder().lower(0.0).upper(3.0).build();
             self.scale.set_adjustment(&adjustment);
-            self.fixed.move_(&*self.scale, 10.0, 10.0);
+            self.fixed.move_(&*self.scale, SCALE_XPOS, START_YPOS);
+            self.fixed
+                .move_(&*self.label_park, LABEL_XPOS, START_YPOS - 5.0);
+            self.fixed
+                .move_(&*self.label_reverse, LABEL_XPOS, START_YPOS + 55.0);
+            self.fixed
+                .move_(&*self.label_neutral, LABEL_XPOS, START_YPOS + 115.0);
+            self.fixed
+                .move_(&*self.label_drive, LABEL_XPOS, END_YPOS + 5.0);
         }
     }
 
     impl WidgetImpl for GearboxWidget {
-        fn request_mode(&self) -> gtk::SizeRequestMode {
-            gtk::SizeRequestMode::ConstantSize
-        }
-
-        fn measure(&self, _orientation: gtk::Orientation, _for_size: i32) -> (i32, i32, i32, i32) {
-            (WIDTH as i32, HEIGHT as i32, -1, -1)
+        fn measure(&self, orientation: gtk::Orientation, for_size: i32) -> (i32, i32, i32, i32) {
+            self.fixed.measure(orientation, for_size)
         }
 
         fn size_allocate(&self, width: i32, height: i32, baseline: i32) {
-            //self.parent_size_allocate(width, height, baseline);
             self.fixed
-                .size_allocate(&gtk::Allocation::new(0, 0, width, height), baseline);
-            //self.scale
-            //    .size_allocate(&gtk::Allocation::new(0, 0, width, height), baseline);
+                .size_allocate(&gtk::Allocation::new(10, 10, width, height), baseline);
         }
     }
 }
@@ -96,7 +127,6 @@ mod imp {
 glib::wrapper! {
     pub struct GearboxWidget(ObjectSubclass<imp::GearboxWidget>)
         @extends gtk::Widget;
-        //@implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget;
 }
 
 impl Default for GearboxWidget {
@@ -107,16 +137,6 @@ impl Default for GearboxWidget {
 
 impl GearboxWidget {
     pub fn new() -> Self {
-        /*let fixed = gtk::Fixed::new();
-        let adjustment = gtk::Adjustment::default();
-        adjustment.set_lower(0.0);
-        adjustment.set_upper(3.0);
-        adjustment.set_step_increment(1.0);
-        let scale = gtk::Scale::new(gtk::Orientation::Vertical, Some(&adjustment));
-        scale.set_range(0.0, 3.0);
-        scale.set_inverted(true); // Invert the scale for a more intuitive UI
-        scale.set_digits(0); // Set the number of decimal places to zero
-        fixed.put(&scale, 0.0, 0.0);*/
         Object::builder().build()
     }
 
