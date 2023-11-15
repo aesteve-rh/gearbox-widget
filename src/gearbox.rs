@@ -4,6 +4,7 @@
 use gtk::{glib, prelude::*, subclass::prelude::*};
 use log::warn;
 use num_enum::TryFromPrimitive;
+use vhal_emulator as ve;
 
 const START_YPOS: f64 = 30.0;
 const END_YPOS: f64 = 200.0;
