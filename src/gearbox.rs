@@ -9,7 +9,7 @@ use vhal_emulator as ve;
 const START_YPOS: f64 = 30.0;
 const END_YPOS: f64 = 200.0;
 const SCALE_XPOS: f64 = 50.0;
-const LABEL_XPOS: f64 = 95.0;
+const LABEL_XPOS: f64 = 85.0;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, TryFromPrimitive)]
 #[repr(u32)]
@@ -55,22 +55,22 @@ mod imp {
             </child>
             <child>
               <object class="GtkLabel" id="label_park">
-                <property name="label">- P</property>
+                <property name="label">—  P</property>
               </object>
             </child>
             <child>
               <object class="GtkLabel" id="label_reverse">
-                <property name="label">- R</property>
+                <property name="label">—  R</property>
               </object>
             </child>
             <child>
               <object class="GtkLabel" id="label_neutral">
-                <property name="label">- N</property>
+                <property name="label">—  N</property>
               </object>
             </child>
             <child>
               <object class="GtkLabel" id="label_drive">
-                <property name="label">- D</property>
+                <property name="label">—  D</property>
               </object>
             </child>
           </object>
