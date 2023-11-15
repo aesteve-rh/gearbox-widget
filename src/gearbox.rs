@@ -114,6 +114,10 @@ mod imp {
     impl ObjectImpl for GearboxWidget {
         fn constructed(&self) {
             self.parent_constructed();
+
+            let vhal = ve::Vhal::new(ve::adb_port_forwarding().unwrap()).unwrap();
+            self.vhal.set(vhal).unwrap();
+
             let adjustment = gtk::Adjustment::builder().lower(0.0).upper(3.0).build();
             self.scale.set_adjustment(&adjustment);
             self.fixed.move_(&*self.scale, SCALE_XPOS, START_YPOS);
@@ -151,18 +155,12 @@ glib::wrapper! {
 
 impl Default for GearboxWidget {
     fn default() -> Self {
-        glib::Object::new::<Self>().init_vhal()
+        glib::Object::new()
     }
 }
 
 #[gtk::template_callbacks]
 impl GearboxWidget {
-    pub fn init_vhal(self) -> Self {
-        let vhal = ve::Vhal::new(ve::adb_port_forwarding().unwrap()).unwrap();
-        self.imp().vhal.set(vhal).unwrap();
-        self
-    }
-
     fn vhal(&self) -> &ve::Vhal {
         self.imp().vhal.get().unwrap()
     }
