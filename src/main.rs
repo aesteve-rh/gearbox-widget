@@ -9,7 +9,7 @@ const WIDTH: i32 = 180;
 const HEIGHT: i32 = 280;
 
 fn on_activate(application: &gtk::Application) {
-    let gearbox = gearbox::GearboxWidget::new();
+    let gearbox = gearbox::GearboxWidget::default();
     let window = gtk::ApplicationWindow::builder()
         .application(application)
         .default_width(WIDTH)

@@ -1,20 +1,35 @@
 // SPDX-FileCopyrightText: Red Hat, Inc.
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use glib::Object;
 use gtk::{glib, prelude::*, subclass::prelude::*};
+use log::warn;
+use num_enum::TryFromPrimitive;
+use vhal_emulator as ve;
 
 const START_YPOS: f64 = 30.0;
 const END_YPOS: f64 = 200.0;
 const SCALE_XPOS: f64 = 50.0;
 const LABEL_XPOS: f64 = 95.0;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, TryFromPrimitive)]
+#[repr(u32)]
 pub enum VehicleGear {
     Park,
     Reverse,
     Neutral,
     Drive,
+}
+
+impl VehicleGear {
+    fn to_vhal(self) -> ve::vhal_consts_2_0::VehicleGear {
+        use ve::vhal_consts_2_0::VehicleGear::*;
+        match self {
+            Self::Park => GEAR_PARK,
+            Self::Reverse => GEAR_REVERSE,
+            Self::Neutral => GEAR_NEUTRAL,
+            Self::Drive => GEAR_DRIVE,
+        }
+    }
 }
 
 mod imp {
@@ -35,6 +50,7 @@ mod imp {
                   <property name="show-fill-level">false</property>
                   <property name="has-origin">false</property>
                   <property name="height-request">200</property>
+                  <signal name="value-changed" handler="on_gear_change" swapped="true" />
               </object>
             </child>
             <child>
@@ -75,7 +91,7 @@ mod imp {
         pub(super) label_neutral: TemplateChild<gtk::Label>,
         #[template_child]
         pub(super) label_drive: TemplateChild<gtk::Label>,
-        pub(super) gear: OnceCell<VehicleGear>,
+        pub(super) vhal: OnceCell<ve::Vhal>,
     }
 
     #[glib::object_subclass]
@@ -87,7 +103,7 @@ mod imp {
         fn class_init(klass: &mut Self::Class) {
             klass.set_accessible_role(gtk::AccessibleRole::Button);
             klass.bind_template();
-            //klass.bind_template_instance_callbacks();
+            klass.bind_template_instance_callbacks();
         }
 
         fn instance_init(obj: &glib::subclass::InitializingObject<Self>) {
@@ -131,20 +147,31 @@ glib::wrapper! {
 
 impl Default for GearboxWidget {
     fn default() -> Self {
-        glib::Object::new::<Self>()
+        glib::Object::new::<Self>().init_vhal()
     }
 }
 
+#[gtk::template_callbacks]
 impl GearboxWidget {
-    pub fn new() -> Self {
-        Object::builder().build()
+    pub fn init_vhal(self) -> Self {
+        let vhal = ve::Vhal::new(ve::adb_port_forwarding().unwrap()).unwrap();
+        self.imp().vhal.set(vhal).unwrap();
+        self
     }
 
-    pub fn with_range(min: f64, max: f64, step: f64) -> Self {
-        let adjustment = gtk::Adjustment::default();
-        adjustment.set_lower(min);
-        adjustment.set_upper(max);
-        adjustment.set_step_increment(step);
-        Object::builder().property("adjustment", adjustment).build()
+    fn vhal(&self) -> &ve::Vhal {
+        self.imp().vhal.get().unwrap()
+    }
+
+    #[template_callback]
+    async fn on_gear_change(&self, scale: &gtk::Scale) {
+        if let Ok(gear) = VehicleGear::try_from(scale.value() as u32) {
+            self.vhal().set_gear_selection(gear.to_vhal()).unwrap();
+            if !self.vhal().recv_cmd().is_ok_and(|cmd| {
+                cmd.has_status() && cmd.status() == ve::VehicleHalProto::Status::RESULT_OK
+            }) {
+                warn!("Gear selection message failed");
+            }
+        }
     }
 }
