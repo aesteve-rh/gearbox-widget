@@ -9,4 +9,5 @@ edition = "2021"
 gtk = { version = "0.7", package = "gtk4", features = ["v4_12"] }
 num_enum = "0.7"
 log = "0.4"
-vhal_emulator = { git =  "https://gitlab.cee.redhat.com/aesteve/vhal_emulator", rev = "d6856ca77c59b823e4a8d0ce000b88c0d53b5428" }
+clap = { version = "4.0", features = ["derive"] }
+vhal_emulator = { git =  "https://github.com/aesteve-rh/vhal_emulator.git", rev = "d6856ca77c59b823e4a8d0ce000b88c0d53b5428" }

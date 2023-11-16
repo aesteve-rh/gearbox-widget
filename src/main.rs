@@ -3,13 +3,26 @@
 
 mod gearbox;
 
+use clap::Parser;
 use gtk::{gdk, gio, glib, prelude::*};
+use vhal_emulator as ve;
 
 const WIDTH: i32 = 180;
 const HEIGHT: i32 = 280;
 
+#[derive(Parser)]
+struct Cli {
+    #[clap(short, long, help = "Specify the local port for the VHAL socket")]
+    local_port: Option<u16>,
+}
+
 fn on_activate(application: &gtk::Application) {
-    let gearbox = gearbox::GearboxWidget::default();
+    let args = Cli::parse();
+    let port = match args.local_port {
+        Some(port) => port,
+        None => ve::adb_port_forwarding().unwrap(),
+    };
+    let gearbox = gearbox::GearboxWidget::with_port(port as u64);
     let window = gtk::ApplicationWindow::builder()
         .application(application)
         .default_width(WIDTH)
@@ -45,5 +58,5 @@ fn main() -> glib::ExitCode {
         .build();
     application.connect_activate(on_activate);
     application.connect_startup(on_startup);
-    application.run()
+    application.run_with_args(&Vec::<String>::new())
 }

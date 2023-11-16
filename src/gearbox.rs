@@ -33,11 +33,11 @@ impl VehicleGear {
 }
 
 mod imp {
-    use std::cell::OnceCell;
+    use std::cell::{Cell, OnceCell};
 
     use super::*;
 
-    #[derive(Debug, Default, gtk::CompositeTemplate)]
+    #[derive(Debug, Default, gtk::CompositeTemplate, glib::Properties)]
     #[template(string = r#"
     <interface>
       <template class="GearboxWidget" parent="GtkWidget">
@@ -78,6 +78,7 @@ mod imp {
       </template>
     </interface>
     "#)]
+    #[properties(wrapper_type = super::GearboxWidget)]
     pub struct GearboxWidget {
         #[template_child]
         pub(super) fixed: TemplateChild<gtk::Fixed>,
@@ -91,6 +92,8 @@ mod imp {
         pub(super) label_neutral: TemplateChild<gtk::Label>,
         #[template_child]
         pub(super) label_drive: TemplateChild<gtk::Label>,
+        #[property(get, set, construct_only)]
+        pub(super) port: Cell<u64>,
         pub(super) vhal: OnceCell<ve::Vhal>,
     }
 
@@ -111,11 +114,12 @@ mod imp {
         }
     }
 
+    #[glib::derived_properties]
     impl ObjectImpl for GearboxWidget {
         fn constructed(&self) {
             self.parent_constructed();
 
-            let vhal = ve::Vhal::new(ve::adb_port_forwarding().unwrap()).unwrap();
+            let vhal = ve::Vhal::new(self.obj().port() as u16).unwrap();
             self.vhal.set(vhal).unwrap();
 
             let adjustment = gtk::Adjustment::builder().lower(0.0).upper(3.0).build();
@@ -161,6 +165,10 @@ impl Default for GearboxWidget {
 
 #[gtk::template_callbacks]
 impl GearboxWidget {
+    pub fn with_port(port: u64) -> Self {
+        glib::Object::builder().property("port", port).build()
+    }
+
     fn vhal(&self) -> &ve::Vhal {
         self.imp().vhal.get().unwrap()
     }
