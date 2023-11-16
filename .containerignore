@@ -1,0 +1,9 @@
+# Same as in .gitignore
+target
+.flatpak
+.vscode
+
+# Additional
+container
+!./container/bin/adb
+**/README.md

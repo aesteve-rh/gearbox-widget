@@ -1,0 +1,26 @@
+# SPDX-FileCopyrightText: Red Hat, Inc.
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+FROM registry.fedoraproject.org/fedora:39 AS build
+RUN dnf upgrade -y \
+    && dnf install -y dnf-plugins-core \
+      graphene \
+      cargo \
+      git \
+      gtk4 \
+      gtk4-devel \
+    && dnf builddep -y gtk4 \
+    && dnf clean all
+# Build & install gearbox-widget
+ADD . /gearbox-widget
+WORKDIR /gearbox-widget
+RUN cargo build --release
+
+FROM registry.fedoraproject.org/fedora:39
+RUN dnf upgrade -y \
+    && dnf install -y dnf-plugins-core gtk4 \
+    && dnf builddep -y gtk4 \
+    && dnf clean all
+COPY --from=build /gearbox-widget/target/release/gearbox-widget /usr/bin
+COPY ./container/bin/adb /usr/bin
+ENTRYPOINT [ "gearbox-widget" ]
